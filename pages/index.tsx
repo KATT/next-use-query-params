@@ -8,7 +8,14 @@ export default function Home() {
       num: "number",
       pets: "string[]",
       bool: "boolean",
-      anotherString: "string",
+      anotherString: {
+        type: "string",
+        default: "",
+      },
+      withDefault: {
+        type: "number",
+        default: 42,
+      },
     },
     {
       type: "push",
@@ -36,7 +43,6 @@ export default function Home() {
             defaultValue={params.str ?? ""}
             onChange={(e) => {
               setParams({
-                ...params,
                 str: e.target.value,
               });
             }}
@@ -50,7 +56,6 @@ export default function Home() {
             defaultValue={params.num ?? 0}
             onChange={(e) => {
               setParams({
-                ...params,
                 num: e.target.value,
               });
             }}
@@ -71,7 +76,6 @@ export default function Home() {
                 (o) => o.value,
               );
               setParams({
-                ...params,
                 pets: values,
               });
             }}
@@ -90,7 +94,6 @@ export default function Home() {
             checked={params.bool ?? false}
             onChange={(e) => {
               setParams({
-                ...params,
                 bool: e.target.checked,
               });
             }}
@@ -111,6 +114,20 @@ export default function Home() {
             }}
           />
         </label>
+        <br />
+        <label>
+          withDefault
+          <input
+            type='number'
+            defaultValue={params.withDefault}
+            onChange={(e) => {
+              setParams({
+                withDefault: e.target.value,
+              });
+            }}
+          />
+        </label>
+        <br />
       </form>
       <h2>Result</h2>
       <pre>{JSON.stringify(params, null, 4)}</pre>
