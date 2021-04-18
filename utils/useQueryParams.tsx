@@ -85,11 +85,15 @@ export function useQueryParams<
 
   const setParams = useCallback(
     (newObj: TSetParams, opts?: UseQueryParamsOptions) => {
-      const q: Record<string, unknown> = {};
+      const q: Record<string, unknown> = {
+        ...router.query,
+      };
       for (const key in newObj) {
         const value = newObj[key];
         if (typeof value !== "undefined") {
           q[key] = value;
+        } else {
+          delete q[key];
         }
       }
       router[optsRef.current?.type ?? "push"](
@@ -100,5 +104,18 @@ export function useQueryParams<
     },
     [router],
   );
-  return { setParams, params: result };
+
+  const setParam = useCallback(
+    <TKey extends keyof TSetParams & string>(
+      key: TKey,
+      value: TSetParams[TKey],
+    ) => {
+      setParams({
+        ...(result as any),
+        [key]: value,
+      });
+    },
+    [setParams],
+  );
+  return { setParams, setParam, params: result };
 }
