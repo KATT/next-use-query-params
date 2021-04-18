@@ -16,7 +16,7 @@ interface ParamOptionInterface<TType extends ParamOptionTypes> {
 type inferParamType<
   TParamType extends ParamOptionTypes
 > = TParamType extends "string"
-  ? string | undefined
+  ? string
   : TParamType extends "string[]"
   ? string[]
   : TParamType extends "number"
@@ -58,6 +58,13 @@ export interface UseQueryParamsOptions {
   transitionOptions?: TransitionOptions;
 }
 
+function isEqual(a: unknown, b: unknown) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && !a.some((v, index) => v !== b[index]);
+  }
+  return a === b;
+}
+
 type ParamOptionType =
   | ParamOptionInterface<"boolean">
   | ParamOptionInterface<"number">
@@ -86,22 +93,40 @@ export function useQueryParams<
   const router = useRouter();
   const query = router.query;
 
+  const optsRef = useRef(opts);
+  optsRef.current = opts;
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+
   const defaultValues = useMemo(() => {
     const obj: Record<string, unknown> = {};
-    for (const key in params) {
-      obj[key] =
-        typeof params[key] === "string"
-          ? undefined
-          : (params[key] as any).default;
+    const p = paramsRef.current;
+    for (const key in p) {
+      const param = p[key];
+      const type: ParamOptionTypes =
+        typeof param === "string" ? param : (param as any).type;
+      let value =
+        typeof param === "string" ? undefined : (param as any).default;
+
+      if (typeof value === "undefined") {
+        if (type.endsWith("[]")) {
+          value = [];
+        } else if (type === "string") {
+          value = "";
+        } else if (type === "boolean") {
+          value = false;
+        }
+      }
+      obj[key] = value;
     }
 
     return obj;
   }, []);
 
   const transform = useCallback((key: string, value: unknown) => {
-    const type = (typeof params[key] === "string"
-      ? params[key]
-      : (params[key] as any).type) as ParamOptionTypes;
+    const type = (typeof paramsRef.current[key] === "string"
+      ? paramsRef.current[key]
+      : (paramsRef.current[key] as any).type) as ParamOptionTypes;
 
     if (typeof value === "undefined") {
       return defaultValues[key];
@@ -117,16 +142,13 @@ export function useQueryParams<
 
   const result = useMemo(() => {
     const obj: Record<string, unknown> = {};
-    for (const key in params) {
+    for (const key in paramsRef.current) {
       const value = query[key];
       obj[key] = transform(key as any, value);
     }
     return obj as TResult;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
-
-  const optsRef = useRef(opts);
-  optsRef.current = opts;
 
   const setParams = useCallback(
     (newObj: TSetParams) => {
@@ -137,18 +159,20 @@ export function useQueryParams<
       for (const key in newObj) {
         const raw = newObj[key];
         const value = transform(key, raw);
-        if (typeof value !== "undefined" && value !== defaultValues[key]) {
+        if (
+          typeof value !== "undefined" &&
+          !isEqual(value, defaultValues[key])
+        ) {
           q[key] = value;
         } else {
           delete q[key];
         }
       }
 
-      router[optsRef.current?.type ?? "push"](
-        { query: q as any },
-        undefined,
-        optsRef.current?.transitionOptions,
-      );
+      router[optsRef.current?.type ?? "push"]({ query: q as any }, undefined, {
+        scroll: false,
+        ...(optsRef.current?.transitionOptions ?? {}),
+      });
     },
     [router],
   );

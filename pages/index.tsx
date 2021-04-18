@@ -6,11 +6,14 @@ export default function Home() {
     {
       str: "string",
       num: "number",
-      pets: "string[]",
+      pets: {
+        type: "string[]",
+        default: ["cat"],
+      },
       bool: "boolean",
       anotherString: {
         type: "string",
-        default: "",
+        default: "123",
       },
       withDefault: {
         type: "number",
@@ -53,7 +56,7 @@ export default function Home() {
           num
           <input
             type='number'
-            defaultValue={params.num ?? 0}
+            defaultValue={params.num}
             onChange={(e) => {
               setParams({
                 num: e.target.value,
