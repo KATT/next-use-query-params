@@ -40,8 +40,8 @@ function typecast(value: unknown, type: ParamOptionTypes) {
       return num;
     }
   }
-  if (type === "boolean" && (value === "true" || value === "false")) {
-    return value === "true";
+  if (type === "boolean") {
+    return value === "true" || value === true;
   }
 
   return undefined;
@@ -79,7 +79,7 @@ export function useQueryParams<
   },
   TSetParams extends Partial<
     {
-      [TKey in keyof TResult]: TResult[TKey] | string;
+      [TKey in keyof TResult]: TResult[TKey] | string | undefined;
     }
   >
 >(params: TParams, opts?: UseQueryParamsOptions) {
@@ -129,7 +129,7 @@ export function useQueryParams<
   optsRef.current = opts;
 
   const setParams = useCallback(
-    (newObj: TSetParams, opts?: UseQueryParamsOptions) => {
+    (newObj: TSetParams) => {
       const q: Record<string, unknown> = {
         ...router.query,
       };
@@ -143,6 +143,7 @@ export function useQueryParams<
           delete q[key];
         }
       }
+
       router[optsRef.current?.type ?? "push"](
         { query: q as any },
         undefined,
@@ -155,12 +156,11 @@ export function useQueryParams<
   const setParam = useCallback(
     <TKey extends keyof TSetParams & string>(
       key: TKey,
-      value: TSetParams[TKey] | undefined,
+      value: TSetParams[TKey],
     ) => {
       setParams({
-        ...(result as any),
         [key]: value,
-      });
+      } as any);
     },
     [setParams],
   );
