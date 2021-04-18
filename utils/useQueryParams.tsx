@@ -8,6 +8,25 @@ type ParamOptionTypes =
   | "number[]"
   | "boolean";
 
+interface ParamOption<TType extends ParamOptionTypes> {
+  type: TType;
+  default?: inferParamType<TType>;
+}
+
+type inferParamType<
+  TParamType extends ParamOptionTypes
+> = TParamType extends "string"
+  ? string | undefined
+  : TParamType extends "string[]"
+  ? string[]
+  : TParamType extends "number"
+  ? number | undefined
+  : TParamType extends "number[]"
+  ? number[]
+  : TParamType extends "boolean"
+  ? boolean
+  : unknown;
+
 function typecast(value: unknown, type: ParamOptionTypes) {
   if (typeof value === "undefined") {
     return undefined;
@@ -41,17 +60,7 @@ export interface UseQueryParamsOptions {
 export function useQueryParams<
   TParams extends Record<string, ParamOptionTypes>,
   TResult extends {
-    [TKey in keyof TParams]: TParams[TKey] extends "string"
-      ? string | undefined
-      : TParams[TKey] extends "string[]"
-      ? string[]
-      : TParams[TKey] extends "number"
-      ? number | undefined
-      : TParams[TKey] extends "number[]"
-      ? number[]
-      : TParams[TKey] extends "boolean"
-      ? boolean
-      : unknown;
+    [TKey in keyof TParams]: inferParamType<TParams[TKey]>;
   },
   TSetParams extends {
     [TKey in keyof TResult]: TResult[TKey] | string;
@@ -108,7 +117,7 @@ export function useQueryParams<
   const setParam = useCallback(
     <TKey extends keyof TSetParams & string>(
       key: TKey,
-      value: TSetParams[TKey],
+      value: TSetParams[TKey] | undefined,
     ) => {
       setParams({
         ...(result as any),
