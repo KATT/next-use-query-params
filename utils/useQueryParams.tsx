@@ -83,7 +83,7 @@ export function useQueryParams<
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
-  const setter = useCallback(
+  const setParams = useCallback(
     (newObj: TSetParams, opts?: UseQueryParamsOptions) => {
       const q: Record<string, unknown> = {};
       for (const key in newObj) {
@@ -100,5 +100,5 @@ export function useQueryParams<
     },
     [router],
   );
-  return [setter, result] as const;
+  return { setParams, params: result };
 }

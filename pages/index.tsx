@@ -2,7 +2,7 @@ import Head from "next/head";
 import { useQueryParams } from "../utils/useQueryParams";
 
 export default function Home() {
-  const [setQuery, params] = useQueryParams(
+  const { setParams, params } = useQueryParams(
     {
       str: "string",
       num: "number",
