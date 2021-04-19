@@ -89,20 +89,20 @@ export function useQueryParams<
       [TKey in keyof TResult]: TResult[TKey] | string | undefined;
     }
   >
->(params: TParams, opts?: UseQueryParamsOptions) {
+>(_params: TParams, _opts?: UseQueryParamsOptions) {
   const router = useRouter();
   const query = router.query;
 
-  const optsRef = useRef(opts);
-  optsRef.current = opts;
-  const paramsRef = useRef(params);
-  paramsRef.current = params;
+  const optsRef = useRef(_opts);
+  optsRef.current = _opts;
+  const paramsRef = useRef(_params);
+  paramsRef.current = _params;
 
   const defaultValues = useMemo(() => {
     const obj: Record<string, unknown> = {};
-    const p = paramsRef.current;
-    for (const key in p) {
-      const param = p[key];
+    const params = paramsRef.current;
+    for (const key in params) {
+      const param = params[key];
       const type: ParamOptionTypes =
         typeof param === "string" ? param : (param as any).type;
       let value =
@@ -124,9 +124,10 @@ export function useQueryParams<
   }, []);
 
   const transform = useCallback((key: string, value: unknown) => {
-    const type = (typeof paramsRef.current[key] === "string"
-      ? paramsRef.current[key]
-      : (paramsRef.current[key] as any).type) as ParamOptionTypes;
+    const params = paramsRef.current;
+    const type = (typeof params[key] === "string"
+      ? params[key]
+      : (params[key] as any).type) as ParamOptionTypes;
 
     if (typeof value === "undefined") {
       return defaultValues[key];
@@ -135,7 +136,8 @@ export function useQueryParams<
     if (type.endsWith("[]")) {
       return toArray(value)
         .map((v: unknown) => typecast(v, type))
-        .filter((v) => typeof v !== "undefined");
+        .filter((v) => typeof v !== "undefined")
+        .filter((v) => v !== "_empty");
     }
     return typecast(value, type);
   }, []);
@@ -152,26 +154,35 @@ export function useQueryParams<
 
   const setParams = useCallback(
     (newObj: TSetParams) => {
-      const q: Record<string, unknown> = {
+      const newQuery: Record<string, unknown> = {
         ...router.query,
       };
+      const params = paramsRef.current;
+      const opts = optsRef.current;
 
       for (const key in newObj) {
         const raw = newObj[key];
         const value = transform(key, raw);
+        const defaultValue = defaultValues[key];
         if (
+          Array.isArray(defaultValue) &&
+          Array.isArray(value) &&
+          value.length === 0
+        ) {
+          newQuery[key] = "_empty";
+        } else if (
           typeof value !== "undefined" &&
           !isEqual(value, defaultValues[key])
         ) {
-          q[key] = value;
+          newQuery[key] = value;
         } else {
-          delete q[key];
+          delete newQuery[key];
         }
       }
 
-      router[optsRef.current?.type ?? "push"]({ query: q as any }, undefined, {
+      router[opts?.type ?? "push"]({ query: newQuery as any }, undefined, {
         scroll: false,
-        ...(optsRef.current?.transitionOptions ?? {}),
+        ...(opts?.transitionOptions ?? {}),
       });
     },
     [router],

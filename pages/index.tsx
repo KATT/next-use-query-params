@@ -19,6 +19,10 @@ export default function Home() {
         type: "number",
         default: 42,
       },
+      checky: {
+        type: "string[]",
+        default: ["1"],
+      },
     },
     {
       type: "push",
@@ -127,6 +131,50 @@ export default function Home() {
               setParams({
                 withDefault: e.target.value,
               });
+            }}
+          />
+        </label>
+        <br />
+
+        <label>
+          checky
+          <input
+            type='checkbox'
+            name='checky'
+            value='1'
+            checked={params.checky.includes("1")}
+            onChange={(e) => {
+              const next = params.checky.filter((v) => v !== e.target.value);
+              if (!params.checky.includes(e.target.value) && e.target.checked) {
+                next.push(e.target.value);
+              }
+              setParam("checky", next);
+            }}
+          />
+          <input
+            type='checkbox'
+            name='checky'
+            value='2'
+            checked={params.checky.includes("2")}
+            onChange={(e) => {
+              const next = params.checky.filter((v) => v !== e.target.value);
+              if (!params.checky.includes(e.target.value) && e.target.checked) {
+                next.push(e.target.value);
+              }
+              setParam("checky", next);
+            }}
+          />
+          <input
+            type='checkbox'
+            name='checky'
+            value='3'
+            checked={params.checky.includes("3")}
+            onChange={(e) => {
+              const next = params.checky.filter((v) => v !== e.target.value);
+              if (!params.checky.includes(e.target.value) && e.target.checked) {
+                next.push(e.target.value);
+              }
+              setParam("checky", next);
             }}
           />
         </label>
