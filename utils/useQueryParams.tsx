@@ -8,11 +8,14 @@ type ParamOptionTypes =
   | "number[]"
   | "boolean";
 
-interface ParamOptionInterface<TType extends ParamOptionTypes> {
+interface ParamOptionBase<TType extends ParamOptionTypes> {
   type: TType;
   default?: inferParamType<TType>;
 }
 
+export type format<T> = {
+  [k in keyof T]: T[k];
+};
 type inferParamType<
   TParamType extends ParamOptionTypes
 > = TParamType extends "string"
@@ -66,30 +69,50 @@ function isEqual(a: unknown, b: unknown) {
 }
 
 type ParamOptionType =
-  | ParamOptionInterface<"boolean">
-  | ParamOptionInterface<"number">
-  | ParamOptionInterface<"number[]">
-  | ParamOptionInterface<"string">
-  | ParamOptionInterface<"string[]">;
+  | ParamOptionBase<"boolean">
+  | ParamOptionBase<"number">
+  | ParamOptionBase<"number[]">
+  | ParamOptionBase<"string">
+  | ParamOptionBase<"string[]">;
 
 export function useQueryParams<
-  TParams extends Record<string, ParamOptionTypes | ParamOptionType>,
-  TKeys extends keyof TParams & string,
-  TResult extends {
-    [TKey in TKeys]: TParams[TKey] extends ParamOptionTypes
-      ? inferParamType<TParams[TKey]>
-      : TParams[TKey] extends ParamOptionInterface<infer TType>
-      ? TParams[TKey]["default"] extends inferParamType<TType>
-        ? TParams[TKey]["default"]
-        : inferParamType<TType>
-      : never;
-  },
-  TSetParams extends Partial<
+  TParams extends Record<string, ParamOptionTypes | ParamOptionType>
+>(_params: TParams, _opts?: UseQueryParamsOptions) {
+  type TKeys = keyof TParams & string;
+  type TResolvedParams = format<
+    {
+      [TKey in TKeys]: TParams[TKey] extends ParamOptionTypes
+        ? {
+            type: TParams[TKey];
+            defaultValue: inferParamType<TParams[TKey]>;
+          }
+        : TParams[TKey] extends ParamOptionBase<infer TType>
+        ? {
+            type: TParams[TKey]["type"];
+            defaultValue: TParams[TKey]["default"] extends inferParamType<TType>
+              ? TParams[TKey]["default"]
+              : inferParamType<TType>;
+          }
+        : never;
+    }
+  >;
+  type TResult = format<
+    {
+      [TKey in TKeys]: TParams[TKey] extends ParamOptionTypes
+        ? inferParamType<TParams[TKey]>
+        : TParams[TKey] extends ParamOptionBase<infer TType>
+        ? TParams[TKey]["default"] extends inferParamType<TType>
+          ? TParams[TKey]["default"]
+          : inferParamType<TType>
+        : never;
+    }
+  >;
+  type TSetParams = Partial<
     {
       [TKey in keyof TResult]: TResult[TKey] | string | undefined;
     }
-  >
->(_params: TParams, _opts?: UseQueryParamsOptions) {
+  >;
+
   const router = useRouter();
   const query = router.query;
 
@@ -98,39 +121,39 @@ export function useQueryParams<
   const paramsRef = useRef(_params);
   paramsRef.current = _params;
 
-  const defaultValues = useMemo(() => {
+  const resolvedParams = useMemo(() => {
     const obj: Record<string, unknown> = {};
     const params = paramsRef.current;
     for (const key in params) {
       const param = params[key];
       const type: ParamOptionTypes =
         typeof param === "string" ? param : (param as any).type;
-      let value =
+      let defaultValue =
         typeof param === "string" ? undefined : (param as any).default;
 
-      if (typeof value === "undefined") {
+      if (typeof defaultValue === "undefined") {
         if (type.endsWith("[]")) {
-          value = [];
+          defaultValue = [];
         } else if (type === "string") {
-          value = "";
+          defaultValue = "";
         } else if (type === "boolean") {
-          value = false;
+          defaultValue = false;
         }
       }
-      obj[key] = value;
+      obj[key] = {
+        type,
+        defaultValue,
+      };
     }
 
-    return obj;
+    return obj as TResolvedParams;
   }, []);
 
-  const transform = useCallback((key: string, value: unknown) => {
-    const params = paramsRef.current;
-    const type = (typeof params[key] === "string"
-      ? params[key]
-      : (params[key] as any).type) as ParamOptionTypes;
+  const transform = useCallback((key: TKeys, value: unknown) => {
+    const { type, defaultValue } = resolvedParams[key];
 
     if (typeof value === "undefined") {
-      return defaultValues[key];
+      return defaultValue;
     }
 
     if (type.endsWith("[]")) {
@@ -163,16 +186,17 @@ export function useQueryParams<
       for (const key in newObj) {
         const raw = newObj[key];
         const value = transform(key, raw);
-        const defaultValue = defaultValues[key];
+        const defaultValue = resolvedParams[key].defaultValue;
         if (
           Array.isArray(defaultValue) &&
           Array.isArray(value) &&
+          defaultValue.length > 0 &&
           value.length === 0
         ) {
           newQuery[key] = "_empty";
         } else if (
           typeof value !== "undefined" &&
-          !isEqual(value, defaultValues[key])
+          !isEqual(value, defaultValue)
         ) {
           newQuery[key] = value;
         } else {
@@ -188,16 +212,16 @@ export function useQueryParams<
     [router],
   );
 
-  const setParam = useCallback(
-    <TKey extends keyof TSetParams & string>(
-      key: TKey,
-      value: TSetParams[TKey],
-    ) => {
-      setParams({
-        [key]: value,
-      } as any);
-    },
-    [setParams],
-  );
-  return { setParams, setParam, params: result };
+  // const setParam = useCallback(
+  //   <TKey extends keyof TSetParams & string>(
+  //     key: TKey,
+  //     value: TSetParams[TKey],
+  //   ) => {
+  //     setParams({
+  //       [key]: value,
+  //     } as any);
+  //   },
+  //   [setParams],
+  // );
+  return { setParams, params: result, resolvedParams };
 }

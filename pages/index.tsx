@@ -2,7 +2,7 @@ import Head from "next/head";
 import { useQueryParams } from "../utils/useQueryParams";
 
 export default function Home() {
-  const { setParams, setParam, params } = useQueryParams(
+  const { setParams, params, resolvedParams } = useQueryParams(
     {
       str: "string",
       num: "number",
@@ -11,10 +11,6 @@ export default function Home() {
         default: ["cat"],
       },
       bool: "boolean",
-      anotherString: {
-        type: "string",
-        default: "123",
-      },
       withDefault: {
         type: "number",
         default: 42,
@@ -108,32 +104,6 @@ export default function Home() {
         </label>
         <br />
 
-        <label>
-          anotherString{" "}
-          <em>
-            (using <code>setParam()</code>)
-          </em>
-          <input
-            type='string'
-            defaultValue={params.anotherString ?? ""}
-            onChange={(e) => {
-              setParam("anotherString", e.target.value);
-            }}
-          />
-        </label>
-        <br />
-        <label>
-          withDefault
-          <input
-            type='number'
-            defaultValue={params.withDefault}
-            onChange={(e) => {
-              setParams({
-                withDefault: e.target.value,
-              });
-            }}
-          />
-        </label>
         <br />
 
         <label>
@@ -148,7 +118,7 @@ export default function Home() {
               if (!params.checky.includes(e.target.value) && e.target.checked) {
                 next.push(e.target.value);
               }
-              setParam("checky", next);
+              setParams({ checky: next });
             }}
           />
           <input
@@ -161,7 +131,7 @@ export default function Home() {
               if (!params.checky.includes(e.target.value) && e.target.checked) {
                 next.push(e.target.value);
               }
-              setParam("checky", next);
+              setParams({ checky: next });
             }}
           />
           <input
@@ -174,7 +144,7 @@ export default function Home() {
               if (!params.checky.includes(e.target.value) && e.target.checked) {
                 next.push(e.target.value);
               }
-              setParam("checky", next);
+              setParams({ checky: next });
             }}
           />
         </label>
