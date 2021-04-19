@@ -3,7 +3,7 @@
 
 Type-safe query param handling for [Next.js](https://nextjs.org/).
 
-- Demo at: https://next-use-query-params-katt.vercel.app/
+- Demo at: https://next-use-query-params.katt.dev/
 - CodeSandbox: https://githubbox.com/KATT/next-use-query-params
 
 ## Example usage
