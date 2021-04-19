@@ -2,7 +2,6 @@ import { Router, useRouter } from "next/router";
 import { useCallback, useMemo, useRef } from "react";
 type ParamOptionTypes =
   | "string"
-  //
   | "string[]"
   | "number"
   | "number[]"

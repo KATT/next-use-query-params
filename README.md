@@ -3,6 +3,8 @@
 
 Type-safe query param handling for [Next.js](https://nextjs.org/).
 
+- Demo at: https://next-use-query-params-katt.vercel.app/
+- CodeSandbox: https://githubbox.com/KATT/next-use-query-params
 
 ## Example usage
 
@@ -24,12 +26,41 @@ const { setParams, params } = useQueryParams(
       default: ["1"],
     },
   },
-  {
-    type: "push",
-    transitionOptions: {
-      scroll: false,
-    },
-  },
 );
 ```
 
+### Available types
+
+```tsx
+type ParamOptionTypes =
+  | "string"
+  | "string[]"
+  | "number"
+  | "number[]"
+  | "boolean";
+```
+
+### Options
+
+```tsx
+export interface UseQueryParamsOptions {
+  type?: "replace" | "push";
+  transitionOptions?: TransitionOptions;
+}
+```
+
+**Example:**
+
+```tsx
+const { setParams, params } = useQueryParams(
+  {
+    // [...]
+  },
+  {
+    type: "replace",
+    transitionOptions: {
+      scroll: true,
+    }
+  }
+);
+```
