@@ -29,7 +29,7 @@ const { setParams, params } = useQueryParams(
 );
 ```
 
-### Available types
+## Available types
 
 ```tsx
 type ParamOptionTypes =
@@ -40,7 +40,7 @@ type ParamOptionTypes =
   | "boolean";
 ```
 
-### Options
+## Options
 
 ```tsx
 export interface UseQueryParamsOptions {
@@ -64,3 +64,7 @@ const { setParams, params } = useQueryParams(
   }
 );
 ```
+
+## SSR
+
+In order to make this work in SSR, you have to opt-out of SSG - see [`pages/_app.tsx`](pages/_app.tsx) for an example on how to disable SSG.
