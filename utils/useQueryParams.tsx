@@ -149,38 +149,40 @@ export function useQueryParams<
     return obj as TResolvedParams;
   }, []);
 
-  const transform = useCallback((key: TKeys, value: unknown) => {
-    const { type, defaultValue } = resolvedParams[key];
+  const transform = useCallback(
+    (key: TKeys, value: unknown) => {
+      const { type, defaultValue } = resolvedParams[key];
 
-    if (typeof value === "undefined") {
-      return defaultValue;
-    }
+      if (typeof value === "undefined") {
+        return defaultValue;
+      }
 
-    if (type.endsWith("[]")) {
-      return toArray(value)
-        .map((v: unknown) => typecast(v, type))
-        .filter((v) => typeof v !== "undefined")
-        .filter((v) => v !== "_empty");
-    }
-    return typecast(value, type);
-  }, []);
+      if (type.endsWith("[]")) {
+        return toArray(value)
+          .map((v: unknown) => typecast(v, type))
+          .filter((v) => typeof v !== "undefined")
+          .filter((v) => v !== "_empty");
+      }
+      return typecast(value, type);
+    },
+    [resolvedParams],
+  );
 
   const result = useMemo(() => {
     const obj: Record<string, unknown> = {};
-    for (const key in paramsRef.current) {
+    for (const key in resolvedParams) {
       const value = query[key];
       obj[key] = transform(key as any, value);
     }
     return obj as TResult;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, resolvedParams]);
 
   const setParams = useCallback(
     (newObj: TSetParams) => {
       const newQuery: Record<string, unknown> = {
         ...router.query,
       };
-      const params = paramsRef.current;
       const opts = optsRef.current;
 
       for (const key in newObj) {
@@ -193,6 +195,7 @@ export function useQueryParams<
           defaultValue.length > 0 &&
           value.length === 0
         ) {
+          // edge-case - when defaulting array values we need to have a
           newQuery[key] = "_empty";
         } else if (
           typeof value !== "undefined" &&
@@ -209,19 +212,8 @@ export function useQueryParams<
         ...(opts?.transitionOptions ?? {}),
       });
     },
-    [router],
+    [router, resolvedParams],
   );
 
-  // const setParam = useCallback(
-  //   <TKey extends keyof TSetParams & string>(
-  //     key: TKey,
-  //     value: TSetParams[TKey],
-  //   ) => {
-  //     setParams({
-  //       [key]: value,
-  //     } as any);
-  //   },
-  //   [setParams],
-  // );
   return { setParams, params: result, resolvedParams };
 }
