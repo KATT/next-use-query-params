@@ -3,7 +3,7 @@ import { useQueryParams } from "../utils/useQueryParams";
 import Link from "next/link";
 
 export default function Home() {
-  const { setParams, params, getParams } = useQueryParams(
+  const { setParams, params, getParams, resolvedParams } = useQueryParams(
     {
       str: "string",
       num: "number",
@@ -42,6 +42,10 @@ export default function Home() {
       <h1>
         <code>useQueryParams</code>
       </h1>
+      <h2>Params configuration</h2>
+      <pre>{JSON.stringify(resolvedParams, null, 4)}</pre>
+      <hr />
+      <h2>Update params</h2>
       <form>
         <label>
           str
@@ -164,7 +168,7 @@ export default function Home() {
         selected tab: <code>{params.tab}</code>
       </form>
       <hr />
-      <h2>Result</h2>
+      <h3>Result</h3>
       <pre>{JSON.stringify(params, null, 4)}</pre>
     </>
   );
