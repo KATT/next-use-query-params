@@ -151,9 +151,15 @@ export default function Home() {
         <br />
         <br />
         <label>tab ui:</label>{" "}
-        <Link href={{ query: getParams({ tab: "tab1" }) }}>tab1</Link>{" "}
-        <Link href={{ query: getParams({ tab: "tab2" }) }}>tab2</Link>{" "}
-        <Link href={{ query: getParams({ tab: "tab3" }) }}>tab3</Link>
+        <Link href={{ query: getParams({ tab: "tab1" }) }} scroll={false}>
+          tab1
+        </Link>{" "}
+        <Link href={{ query: getParams({ tab: "tab2" }) }} scroll={false}>
+          tab2
+        </Link>{" "}
+        <Link href={{ query: getParams({ tab: "tab3" }) }} scroll={false}>
+          tab3
+        </Link>
         <br />
         selected tab: <code>{params.tab}</code>
       </form>
