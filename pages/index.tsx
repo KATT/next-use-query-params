@@ -1,8 +1,9 @@
 import Head from "next/head";
 import { useQueryParams } from "../utils/useQueryParams";
+import Link from "next/link";
 
 export default function Home() {
-  const { setParams, params } = useQueryParams(
+  const { setParams, params, getParams } = useQueryParams(
     {
       str: "string",
       num: "number",
@@ -17,6 +18,10 @@ export default function Home() {
       checky: {
         type: "string[]",
         default: ["1"],
+      },
+      tab: {
+        type: "string",
+        default: "tab1",
       },
     },
     {
@@ -64,7 +69,6 @@ export default function Home() {
           />
         </label>
         <br />
-
         <label>
           pets
           <br />
@@ -88,7 +92,6 @@ export default function Home() {
           </select>
         </label>
         <br />
-
         <label>
           bool
           <input
@@ -102,9 +105,7 @@ export default function Home() {
           />
         </label>
         <br />
-
         <br />
-
         <label>
           checky
           <input
@@ -148,7 +149,15 @@ export default function Home() {
           />
         </label>
         <br />
+        <br />
+        <label>tab ui:</label>{" "}
+        <Link href={{ query: getParams({ tab: "tab1" }) }}>tab1</Link>{" "}
+        <Link href={{ query: getParams({ tab: "tab2" }) }}>tab2</Link>{" "}
+        <Link href={{ query: getParams({ tab: "tab3" }) }}>tab3</Link>
+        <br />
+        selected tab: <code>{params.tab}</code>
       </form>
+      <hr />
       <h2>Result</h2>
       <pre>{JSON.stringify(params, null, 4)}</pre>
     </>

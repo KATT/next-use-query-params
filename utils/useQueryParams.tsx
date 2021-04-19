@@ -177,7 +177,7 @@ export function useQueryParams<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, resolvedParams]);
 
-  const setParams = useCallback(
+  const getParams = useCallback(
     (newObj: TSetParams) => {
       const newQuery: Record<string, unknown> = {
         ...router.query,
@@ -206,13 +206,23 @@ export function useQueryParams<
         }
       }
 
+      return newQuery as TSetParams;
+    },
+    [router, resolvedParams],
+  );
+
+  const setParams = useCallback(
+    (newObj: TSetParams) => {
+      const opts = optsRef.current;
+      const newQuery = getParams(newObj);
+
       router[opts?.type ?? "push"]({ query: newQuery as any }, undefined, {
         scroll: false,
         ...(opts?.transitionOptions ?? {}),
       });
     },
-    [router, resolvedParams],
+    [getParams, router],
   );
 
-  return { setParams, params: result, resolvedParams };
+  return { setParams, params: result, resolvedParams, getParams };
 }
