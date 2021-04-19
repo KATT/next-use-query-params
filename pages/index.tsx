@@ -2,13 +2,12 @@ import Head from "next/head";
 import { useQueryParams } from "../utils/useQueryParams";
 
 export default function Home() {
-  const { setParams, params, resolvedParams } = useQueryParams(
+  const { setParams, params } = useQueryParams(
     {
       str: "string",
       num: "number",
       pets: {
         type: "string[]",
-        default: ["cat"],
       },
       bool: "boolean",
       withDefault: {
